@@ -1,0 +1,1 @@
+(WIP) simple but useful code pieces im developing while messing with the league client api, for now a auto queue accepter and a webevent logger but soon to come a champion select handler and a icon manager
