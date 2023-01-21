@@ -1,0 +1,45 @@
+{
+    "ready-check": {
+        "on": true,
+        "timer": 12
+    },
+    "champion_select": {
+        "on": true,
+        "config":{
+            "hover":{
+                "on": true,
+                "timer": 0
+            },
+            "ban": {
+                "on": true,
+                "timer": 0
+            },
+            "pick": {
+                "on": true,
+                "timer": 0
+            }
+        },
+        "preferences":{
+            "top": {
+                "picks": ["Darius", "Fiora"],
+                "bans": ["KSante", "Yone", "Lulu"]
+            },
+            "jungle": {
+                "picks": ["Zac", "Hecarim", "Trundle"],
+                "bans": ["Yone", "Kayn", "Lulu"]
+            },
+            "middle": {
+                "picks": ["Zed", "Ryze", "Yasuo"],
+                "bans": ["KSante", "Yasuo", "Kayn"]
+            },
+            "bottom": {
+                "picks": ["Renekton", "Fiora", "Gangplank"],
+                "bans": ["Yone", "Kayn", "Lulu"]
+            },
+            "utility": {
+                "picks": ["Renekton", "Shaco", "Amumu"],
+                "bans": ["Yone", "Kayn", "Lulu"]
+            }
+        }
+    }
+}
