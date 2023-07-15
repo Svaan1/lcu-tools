@@ -1,4 +1,5 @@
 import requests
+from config.app_config import config
 
 class Champion():
     def __init__(self, id, key):
@@ -63,5 +64,13 @@ class DataDragon():
         self.spells = LeagueSummonerSpells(self.version)
     
     def get_league_version(self):
-        version = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()
-        return version[0]
+        try:
+            version = requests.get("https://ddragon.leagueoflegends.com/api/versions.json").json()[0]
+            config.preferences["last_known_version"] = version
+            config.save_changes()
+        except:
+            version = config.preferences["last_known_version"]
+
+        return version
+
+data_dragon = DataDragon()

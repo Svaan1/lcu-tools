@@ -1,5 +1,5 @@
 class ReadyCheck():
-    def __init__(self, connector, timer=0):
+    def __init__(self, connector, timer=6):
         self.timer = timer if 0 <= timer <= 12 else 0 #maybe remove this if parse the number on gui
         self.connector = connector
         self.register_websockets()

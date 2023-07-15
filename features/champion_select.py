@@ -1,7 +1,5 @@
-from weakref                    import WeakValueDictionary
-from config.app_config                 import ChampionSelectPreferences
-from features.misc.summoner     import Summoner
-from features.misc.data_dragon  import DataDragon
+from features.misc.summoner     import Summoner, ChampionSelectPreferences
+from features.misc.data_dragon  import data_dragon
 
 class ChampionSelect:
     def __init__(self, connector):
@@ -19,6 +17,7 @@ class ChampionSelect:
 
 class ChampionSelectSession:
     def __init__(self, connection):
+        self.summoner = Summoner(connection)
         self.connection = connection
         self.game_id = None
 
@@ -41,7 +40,6 @@ class ChampionSelectSession:
             await self.pre_ban()
         elif current_phase == "BAN_PICK" and "PICKING" not in self.complete_phases:
             await self.pre_pick()
-    
         return self
         
     async def pre_hover(self):
@@ -50,9 +48,9 @@ class ChampionSelectSession:
                 if (action['type'] == "pick" and action['actorCellId'] == self.data["localPlayerCellId"]):
                     return await self.hover(action['id'], self.preferences.hover)
 
-    async def hover(self, action_id, champion_id):
+    async def hover(self, action_id, champion):
         await self.connection.request('patch', f'/lol-champ-select/v1/session/actions/{action_id}',
-                                data={"championId": champion_id})
+                                data={"championId": champion.key})
         self.complete_phases.append("PLANNING")
 
     async def pre_ban(self):
@@ -61,16 +59,14 @@ class ChampionSelectSession:
             for action in actions:
                 if action['type'] == "ban" and action['actorCellId'] == self.data["localPlayerCellId"] and action['isInProgress']:
                     available_champions = [champion for champion in self.preferences.bans if champion.id not in ally_champs]
-                    print(f"AVAILABLE_CHAMPIONS = {available_champions}")
-                    return await self.ban(action['id'], available_champions[0].key)
+                    return await self.ban(action['id'], available_champions[0])
                 if action['type'] == "pick" and action['actorCellId'] // 5 == self.data["localPlayerCellId"] // 5:
                     if action['championId'] != 0:
                         ally_champs.append(action['championId'])
-                        print(f"ALLY CHAMPION = {action['championId']} --- {ally_champs}")
 
-    async def ban(self, action_id, champion_id):
+    async def ban(self, action_id, champion):
         await self.connection.request('patch', f'/lol-champ-select/v1/session/actions/{action_id}',
-                                    data={"championId": champion_id, "completed": True})
+                                    data={"championId": champion.key, "completed": True})
         self.complete_phases.append("BANNING")
 
     async def pre_pick(self):
@@ -79,13 +75,12 @@ class ChampionSelectSession:
             for action in actions:
                 if action['type'] == "pick" and action['actorCellId'] == self.data["localPlayerCellId"] and action['isInProgress']:
                     available_champions = [champion for champion in self.preferences.picks if champion.id not in unavailable_champions]
-                    print(f"AVAILABLE CHAMPIONS = {available_champions}")
-                    return await self.pick(action['id'], available_champions[0].key)
+                    return await self.pick(action['id'], available_champions[0])
                 if action['type'] == "pick" and action['actorCellId'] != self.data["localPlayerCellId"] and action['completed'] or action['type'] == "ban" and action['completed']:
                     unavailable_champions.append(str(action['championId']))
-                    print(f"UNAVAILABLE CHAMPIONS = {str(action['championId'])} --- {unavailable_champions}")
 
-    async def pick(self, action_id, champion_id):
+    async def pick(self, action_id, champion):
         await self.connection.request('patch', f'/lol-champ-select/v1/session/actions/{action_id}',
-                                    data={"championId": champion_id, "completed": True})
+                                    data={"championId": champion.key, "completed": True})
+        await self.summoner.runes.set_recommended(champion.id)
         self.complete_phases.append("PICKING")
